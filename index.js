@@ -5,7 +5,7 @@ const HDWalletProvider = require('@truffle/hdwallet-provider')
 // Set Provider
 const provider = new HDWalletProvider({
     privateKeys: [process.env.PRIVATE_KEY],
-    providerOrUrl: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    providerOrUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
 })
 
 const web3 = new Web3(provider)
@@ -14,24 +14,33 @@ const web3 = new Web3(provider)
 const NONCE = 0
 
 const main = async () => {
-    const [account] = await web3.eth.getAccounts()
-
     try {
+        const [account] = await web3.eth.getAccounts()
 
-        const tx = await web3.eth.sendTransaction({
+        const limit = await web3.eth.estimateGas({
             from: account,
             to: account,
-            value: 0,
-            nonce: NONCE,
+            value: web3.utils.toWei("0")
         })
+
+        console.log(`Estimated Gas needed: ${limit}\n`)
+
+        const txObject = {
+            from: account,
+            to: account,
+            value: web3.utils.toWei("0"),
+            gas: web3.utils.toHex(limit),
+            nonce: NONCE,
+            chainId: 1,
+            type: 0x2
+        }
+
+        const tx = await web3.eth.sendTransaction(txObject)
 
         console.log(`Transaction Completed\n`)
         console.log(`Transaction Hash: ${tx.transactionHash}`)
-
     } catch (error) {
-
         console.log(error)
-
     }
 }
 
